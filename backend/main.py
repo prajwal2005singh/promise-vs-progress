@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.projects import router
-import json, os
+
 
 app = FastAPI(title="Promise vs Progress API")
 
