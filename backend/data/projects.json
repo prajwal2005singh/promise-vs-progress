@@ -1,38 +1,32 @@
 [
-  {
-    "name": "‌Karnataka State Highway Improvement Project (KSHIP)",
-    "location": "Karnataka",
-    "budget": null,
-    "expected_completion": null,
-    "sector": "Road",
-    "status": "Unknown",
-    "description": "‌Karnataka State Highway Improvement Project (KSHIP)",
-    "date": "",
-    "source": "Karnataka PWD",
-    "scraped_at": "2026-03-19T06:21:02.200970Z"
-  },
-  {
-    "name": "Karnataka Road Development Corporation Limited (KRDCL)",
-    "location": "Karnataka",
-    "budget": null,
-    "expected_completion": null,
-    "sector": "Road",
-    "status": "Unknown",
-    "description": "Karnataka Road Development Corporation Limited (KRDCL)",
-    "date": "",
-    "source": "Karnataka PWD",
-    "scraped_at": "2026-03-19T06:21:02.201317Z"
-  },
-  {
-    "name": "Content Owned and maintained by: Public Works Department, Government of Karnataka",
-    "location": "Karnataka",
-    "budget": null,
-    "expected_completion": null,
-    "sector": "Road",
-    "status": "Unknown",
-    "description": "Content Owned and maintained by: Public Works Department, Government of Karnataka",
-    "date": "",
-    "source": "Karnataka PWD",
-    "scraped_at": "2026-03-19T06:21:02.201874Z"
-  }
+    {
+        "name": "Outer Ring Road Expansion",
+        "description": "Expansion of Outer Ring Road to reduce traffic congestion.",
+        "category": "Road",
+        "department": "BBMP",
+        "mla_name": "R. Ashoka",
+        "constituency": "Padmanabhanagar",
+        "location_name": "Banashankari",
+        "latitude": 12.9182,
+        "longitude": 77.5736,
+        "budget": 500000000,
+        "status": "ONGOING",
+        "expected_completion": "2027-03-31T00:00:00",
+        "start_date": "2026-01-01T00:00:00"
+    },
+    {
+        "name": "Mysore Road Flyover",
+        "description": "Construction of a new flyover near Mysore Road Junction.",
+        "category": "Road",
+        "department": "PWD",
+        "mla_name": "S. Suresh Kumar",
+        "constituency": "Rajajinagar",
+        "location_name": "Mysore Road",
+        "latitude": 12.9512,
+        "longitude": 77.5254,
+        "budget": 750000000,
+        "status": "ONGOING",
+        "expected_completion": "2027-06-30T00:00:00",
+        "start_date": "2026-02-15T00:00:00"
+    }
 ]

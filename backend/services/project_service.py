@@ -1,7 +1,12 @@
 from sqlalchemy.orm import Session
 
 from models.project import Project
+from schemas.project import ProjectCreate, ProjectUpdate
 
+
+# -------------------------
+# Read Operations
+# -------------------------
 
 def get_projects(db: Session):
     return db.query(Project).all()
@@ -15,38 +20,70 @@ def get_project_by_id(db: Session, project_id: int):
     )
 
 
-def get_delayed_projects(db: Session):
-    return (
-        db.query(Project)
-        .filter(Project.status == "DELAYED")
-        .all()
+# -------------------------
+# Create Operation
+# -------------------------
+
+def create_project(db: Session, project: ProjectCreate):
+
+    db_project = Project(
+        **project.model_dump()
     )
 
+    db.add(db_project)
 
-def get_project_summary(db: Session):
-    total = db.query(Project).count()
+    db.commit()
 
-    ongoing = (
-        db.query(Project)
-        .filter(Project.status == "ONGOING")
-        .count()
+    db.refresh(db_project)
+
+    return db_project
+
+
+# -------------------------
+# Update Operation
+# -------------------------
+
+def update_project(
+    db: Session,
+    project_id: int,
+    project: ProjectUpdate
+):
+
+    db_project = get_project_by_id(db, project_id)
+
+    if not db_project:
+        return None
+
+    update_data = project.model_dump(
+        exclude_unset=True
     )
 
-    completed = (
-        db.query(Project)
-        .filter(Project.status == "COMPLETED")
-        .count()
-    )
+    for key, value in update_data.items():
+        setattr(db_project, key, value)
 
-    delayed = (
-        db.query(Project)
-        .filter(Project.status == "DELAYED")
-        .count()
-    )
+    db.commit()
 
-    return {
-        "total_projects": total,
-        "ongoing": ongoing,
-        "completed": completed,
-        "delayed": delayed,
-    }
+    db.refresh(db_project)
+
+    return db_project
+
+
+# -------------------------
+# Delete Operation
+# -------------------------
+
+def delete_project(
+    db: Session,
+    project_id: int
+):
+
+    db_project = get_project_by_id(db, project_id)
+
+    if not db_project:
+        return None
+
+    db.delete(db_project)
+
+    db.commit()
+
+    return db_project

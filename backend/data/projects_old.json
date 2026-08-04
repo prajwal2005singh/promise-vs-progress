@@ -1,0 +1,38 @@
+[
+  {
+    "name": "‌Karnataka State Highway Improvement Project (KSHIP)",
+    "location": "Karnataka",
+    "budget": null,
+    "expected_completion": null,
+    "sector": "Road",
+    "status": "Unknown",
+    "description": "‌Karnataka State Highway Improvement Project (KSHIP)",
+    "date": "",
+    "source": "Karnataka PWD",
+    "scraped_at": "2026-03-19T06:21:02.200970Z"
+  },
+  {
+    "name": "Karnataka Road Development Corporation Limited (KRDCL)",
+    "location": "Karnataka",
+    "budget": null,
+    "expected_completion": null,
+    "sector": "Road",
+    "status": "Unknown",
+    "description": "Karnataka Road Development Corporation Limited (KRDCL)",
+    "date": "",
+    "source": "Karnataka PWD",
+    "scraped_at": "2026-03-19T06:21:02.201317Z"
+  },
+  {
+    "name": "Content Owned and maintained by: Public Works Department, Government of Karnataka",
+    "location": "Karnataka",
+    "budget": null,
+    "expected_completion": null,
+    "sector": "Road",
+    "status": "Unknown",
+    "description": "Content Owned and maintained by: Public Works Department, Government of Karnataka",
+    "date": "",
+    "source": "Karnataka PWD",
+    "scraped_at": "2026-03-19T06:21:02.201874Z"
+  }
+]
