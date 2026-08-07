@@ -8,15 +8,17 @@ from sqlalchemy import (
     DateTime,
     ForeignKey
 )
+
 from sqlalchemy.orm import relationship
 
 from models.base import Base
 
 
 class Evidence(Base):
+
     __tablename__ = "evidence"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
 
     project_id = Column(
         Integer,
@@ -35,6 +37,11 @@ class Evidence(Base):
         nullable=False
     )
 
+    image_url = Column(
+        String,
+        nullable=True
+    )
+
     latitude = Column(
         Float,
         nullable=False
@@ -50,31 +57,32 @@ class Evidence(Base):
         nullable=False
     )
 
-    uploaded_at = Column(
+    status = Column(
+        String,
+        default="PENDING"
+    )
+
+    reviewed_by = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=True
+    )
+
+    review_comment = Column(
+        String,
+        nullable=True
+    )
+
+    created_at = Column(
         DateTime,
         default=datetime.utcnow
     )
 
-    trust_score = Column(
-        Float,
-        default=0
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
     )
-
-    verification_status = Column(
-        String,
-        nullable=False,
-        default="PENDING"
-    )
-
-    blockchain_status = Column(
-        String,
-        nullable=False,
-        default="NOT_SENT"
-    )
-
-    # -------------------------
-    # Relationships
-    # -------------------------
 
     project = relationship(
         "Project",
@@ -82,5 +90,11 @@ class Evidence(Base):
     )
 
     uploader = relationship(
-        "User"
+        "User",
+        foreign_keys=[uploaded_by]
+    )
+
+    reviewer = relationship(
+        "User",
+        foreign_keys=[reviewed_by]
     )

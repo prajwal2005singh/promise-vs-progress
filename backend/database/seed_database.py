@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 from datetime import datetime
+from models.user import User
+from auth.hashing import hash_password
 
 from database.db import SessionLocal
 from models.project import Project
@@ -12,6 +14,29 @@ with open(json_file, "r", encoding="utf-8") as f:
     projects = json.load(f)
 
 db = SessionLocal()
+admin = (
+    db.query(User)
+    .filter(User.email == "admin@pvp.com")
+    .first()
+)
+
+if admin is None:
+
+    admin = User(
+        name="System Administrator",
+        email="admin@pvp.com",
+        phone="9999999999",
+        password_hash=hash_password("Admin@123"),
+        google_id=None,
+        role="ADMIN",
+        is_verified=True,
+        status="ACTIVE"
+    )
+
+    db.add(admin)
+    db.commit()
+
+    print("Default admin created.")
 
 for item in projects:
 
@@ -33,7 +58,7 @@ for item in projects:
         start_date=datetime.fromisoformat(
             item["start_date"]
         ) if item.get("start_date") else None,
-        created_by=None
+        created_by=admin.id
     )
 
     db.add(project)

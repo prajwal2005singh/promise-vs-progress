@@ -8,45 +8,41 @@ from sqlalchemy import (
     Float,
     ForeignKey
 )
+
 from sqlalchemy.orm import relationship
 
 from models.base import Base
 
 
 class ProjectProposal(Base):
+
     __tablename__ = "project_proposals"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
 
-    submitted_by = Column(
-        Integer,
-        ForeignKey("users.id"),
-        nullable=False
-    )
-
-    title = Column(String, nullable=False)
+    name = Column(String, nullable=False)
 
     description = Column(String, nullable=False)
 
-    category = Column(String, nullable=False, default="Road")
+    category = Column(String, nullable=False)
+
+    location_name = Column(String, nullable=False)
 
     latitude = Column(Float, nullable=False)
 
     longitude = Column(Float, nullable=False)
 
-    estimated_budget = Column(Integer, nullable=True)
-
-    duplicate_score = Column(Float, nullable=True)
+    budget = Column(Integer, nullable=True)
 
     status = Column(
         String,
-        nullable=False,
         default="PENDING"
     )
 
-    submitted_at = Column(
-        DateTime,
-        default=datetime.utcnow
+    submitted_by = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False
     )
 
     reviewed_by = Column(
@@ -55,20 +51,27 @@ class ProjectProposal(Base):
         nullable=True
     )
 
-    reviewed_at = Column(
-        DateTime,
+    review_comment = Column(
+        String,
         nullable=True
     )
 
-    approved_project_id = Column(
+    created_project_id = Column(
         Integer,
         ForeignKey("projects.id"),
         nullable=True
     )
 
-    # -------------------------
-    # Relationships
-    # -------------------------
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
+    )
 
     citizen = relationship(
         "User",
@@ -81,7 +84,5 @@ class ProjectProposal(Base):
     )
 
     project = relationship(
-        "Project",
-        back_populates="proposals",
-        uselist=False
+        "Project"
     )
