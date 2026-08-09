@@ -1,0 +1,26 @@
+# Web framework
+fastapi
+uvicorn[standard]
+python-multipart      # required by FastAPI for form/file uploads (evidence photos)
+
+# Database
+sqlalchemy
+
+# Auth
+python-jose[cryptography]
+passlib[bcrypt]
+email-validator       # required by pydantic EmailStr used in auth schemas
+
+# Validation
+pydantic
+
+# AI processor (ai_processor.py)
+google-genai
+python-dotenv
+
+# Scraper (scraper.py)
+requests
+beautifulsoup4
+
+# Blockchain integration (blockchain_client.py)
+web3
