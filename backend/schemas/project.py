@@ -17,6 +17,7 @@ class ProjectBase(BaseModel):
     longitude: float
     budget: Optional[int] = None
     status: str
+    progress_percent: int = 0
     expected_completion: Optional[datetime] = None
     start_date: Optional[datetime] = None
 
@@ -37,6 +38,7 @@ class ProjectUpdate(BaseModel):
     longitude: Optional[float] = None
     budget: Optional[int] = None
     status: Optional[str] = None
+    progress_percent: Optional[int] = None
     expected_completion: Optional[datetime] = None
     start_date: Optional[datetime] = None
 

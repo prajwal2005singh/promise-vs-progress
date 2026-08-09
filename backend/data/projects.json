@@ -11,6 +11,7 @@
         "longitude": 77.5970,
         "budget": 177800000000,
         "status": "APPROVED",
+        "progress_percent": 8,
         "expected_completion": "2029-12-31T00:00:00",
         "start_date": "2026-01-01T00:00:00"
     },
@@ -26,6 +27,7 @@
         "longitude": 77.6950,
         "budget": 200000000000,
         "status": "PLANNING",
+        "progress_percent": 0,
         "expected_completion": "2030-12-31T00:00:00",
         "start_date": null
     },
@@ -41,6 +43,7 @@
         "longitude": 77.5946,
         "budget": 35000000000,
         "status": "ONGOING",
+        "progress_percent": 42,
         "expected_completion": "2028-12-31T00:00:00",
         "start_date": "2025-10-22T00:00:00"
     }

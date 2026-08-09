@@ -40,3 +40,8 @@ class ProposalResponse(ProposalCreate):
 
     class Config:
         from_attributes = True
+
+
+class ProposalRejectRequest(BaseModel):
+
+    reason: str

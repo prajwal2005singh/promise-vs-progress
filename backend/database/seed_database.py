@@ -52,6 +52,7 @@ for item in projects:
         longitude=item["longitude"],
         budget=item.get("budget"),
         status=item["status"],
+        progress_percent=item.get("progress_percent", 0),
         expected_completion=datetime.fromisoformat(
             item["expected_completion"]
         ) if item.get("expected_completion") else None,

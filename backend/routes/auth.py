@@ -4,10 +4,15 @@ from sqlalchemy.orm import Session
 
 from database.db import get_db
 
+from auth.dependencies import get_current_user
+
+from models.user import User
+
 from schemas.auth import (
     UserRegister,
     UserLogin,
-    Token
+    Token,
+    CurrentUserResponse
 )
 
 from services.auth_service import (
@@ -66,3 +71,20 @@ def login(
         )
 
     return token
+
+
+@router.get(
+    "/me",
+    response_model=CurrentUserResponse
+)
+def read_current_user(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Lets the frontend restore who's logged in (and their role, to decide
+    whether to show admin views) after a page refresh, using just the
+    token stored client-side -- without this the SPA would have no way
+    to recover session state without asking the person to log in again.
+    """
+
+    return current_user

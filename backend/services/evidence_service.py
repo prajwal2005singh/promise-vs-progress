@@ -41,6 +41,26 @@ def get_all_evidence(db: Session):
     return db.query(Evidence).all()
 
 
+def get_approved_evidence_for_project(db: Session, project_id: int):
+    """
+    Public-facing evidence feed: admin-verified progress only, for a
+    citizen browsing a project's page. Deliberately excludes PENDING
+    and REJECTED evidence -- unreviewed claims shouldn't display as if
+    they were confirmed, and rejected ones stay visible only to admins
+    (via get_all_evidence) for audit purposes.
+    """
+
+    return (
+        db.query(Evidence)
+        .filter(
+            Evidence.project_id == project_id,
+            Evidence.status == "APPROVED"
+        )
+        .order_by(Evidence.captured_at.desc())
+        .all()
+    )
+
+
 def get_evidence_by_id(
     db: Session,
     evidence_id: int

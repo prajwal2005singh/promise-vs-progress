@@ -12,13 +12,15 @@ from models.user import User
 
 from schemas.evidence import (
     EvidenceCreate,
-    EvidenceResponse
+    EvidenceResponse,
+    EvidenceRejectRequest
 )
 
 from services.evidence_service import (
     create_evidence,
     get_all_evidence,
     get_evidence_by_id,
+    get_approved_evidence_for_project,
     approve_evidence,
     reject_evidence
 )
@@ -27,6 +29,23 @@ router = APIRouter(
     prefix="/evidence",
     tags=["Evidence"]
 )
+
+
+@router.get(
+    "/project/{project_id}",
+    response_model=list[EvidenceResponse]
+)
+def list_approved_evidence_for_project(
+    project_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Public: admin-verified evidence for a single project, for display on
+    that project's page. No auth required -- this is the citizen-facing
+    proof feed the whole platform is built around.
+    """
+
+    return get_approved_evidence_for_project(db, project_id)
 
 
 @router.post(
@@ -113,7 +132,7 @@ def approve(
 )
 def reject(
     evidence_id: int,
-    reason: str,
+    payload: EvidenceRejectRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin)
 ):
@@ -122,7 +141,7 @@ def reject(
         db,
         evidence_id,
         current_user.id,
-        reason
+        payload.reason
     )
 
     if evidence is None:

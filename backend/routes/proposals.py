@@ -13,7 +13,8 @@ from models.user import User
 
 from schemas.proposal import (
     ProposalCreate,
-    ProposalResponse
+    ProposalResponse,
+    ProposalRejectRequest
 )
 
 from services.proposal_service import (
@@ -131,7 +132,7 @@ def reject(
 
     proposal_id: int,
 
-    reason: str,
+    payload: ProposalRejectRequest,
 
     db: Session = Depends(get_db),
 
@@ -143,7 +144,7 @@ def reject(
         db,
         proposal_id,
         current_user.id,
-        reason
+        payload.reason
     )
 
     if proposal is None:

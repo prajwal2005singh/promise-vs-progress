@@ -9,6 +9,7 @@ sqlalchemy
 # Auth
 python-jose[cryptography]
 passlib[bcrypt]
+bcrypt==4.0.1          # passlib 1.7.4's backend detection breaks on bcrypt>=4.1
 email-validator       # required by pydantic EmailStr used in auth schemas
 
 # Validation

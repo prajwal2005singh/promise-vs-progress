@@ -41,6 +41,12 @@ class Project(Base):
 
     status = Column(String, nullable=False, default="ONGOING")
 
+    # 0-100. This is the actual "progress" half of the platform's name --
+    # admin-set based on verified evidence and site inspections. Without
+    # it there's no way to compare what was promised against what's
+    # really been delivered, which is the whole point of the project.
+    progress_percent = Column(Integer, nullable=False, default=0)
+
     expected_completion = Column(DateTime, nullable=True)
 
     start_date = Column(DateTime, nullable=True)

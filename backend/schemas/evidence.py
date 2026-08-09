@@ -36,3 +36,8 @@ class EvidenceResponse(EvidenceCreate):
 
     class Config:
         from_attributes = True
+
+
+class EvidenceRejectRequest(BaseModel):
+
+    reason: str
