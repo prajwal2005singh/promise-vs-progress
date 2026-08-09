@@ -54,8 +54,14 @@ function ProposalsTab() {
   const [proposals, setProposals] = useState(null);
   const [busyId, setBusyId] = useState(null);
 
-  const reload = () => api.listProposals().then(setProposals).catch(() => setProposals([]));
-  useEffect(reload, []);
+      const reload = () =>
+      api.listProposals()
+        .then(setProposals)
+        .catch(() => setProposals([]));
+
+    useEffect(() => {
+      reload();
+    }, []);
 
   async function approve(id) {
     setBusyId(id);
@@ -124,8 +130,14 @@ function EvidenceTab() {
   const [evidence, setEvidence] = useState(null);
   const [busyId, setBusyId] = useState(null);
 
-  const reload = () => api.listEvidence().then(setEvidence).catch(() => setEvidence([]));
-  useEffect(reload, []);
+  const reload = () =>
+  api.listEvidence()
+    .then(setEvidence)
+    .catch(() => setEvidence([]));
+
+useEffect(() => {
+  reload();
+}, []);
 
   async function approve(id) {
     setBusyId(id);
