@@ -4,6 +4,7 @@ import hardhatVerify from "@nomicfoundation/hardhat-verify";
 
 const config = {
   plugins: [hardhatEthers, hardhatVerify],
+
   solidity: {
     version: "0.8.20",
     settings: {

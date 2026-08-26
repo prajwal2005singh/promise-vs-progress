@@ -85,7 +85,7 @@ export default function Layout() {
       <footer className="border-t mt-16" style={{ borderColor: "var(--color-line)" }}>
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs" style={{ color: "var(--color-ink-soft)" }}>
           <p className="font-mono">Promise vs Progress · Karnataka Pilot · Roads &amp; Schools</p>
-          <p className="font-mono">Every verified record is anchored on Polygon &mdash; nothing here can be quietly edited.</p>
+          <p className="font-mono">Every verified record is anchored on the audit chain &mdash; nothing here can be quietly edited.</p>
         </div>
       </footer>
     </div>

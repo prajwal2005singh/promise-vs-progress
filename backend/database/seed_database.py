@@ -50,6 +50,8 @@ for item in projects:
         location_name=item["location_name"],
         latitude=item["latitude"],
         longitude=item["longitude"],
+        location_geometry=item.get("location_geometry"),
+        location_geofence_m=item.get("location_geofence_m"),
         budget=item.get("budget"),
         status=item["status"],
         progress_percent=item.get("progress_percent", 0),

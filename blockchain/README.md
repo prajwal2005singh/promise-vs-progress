@@ -1,8 +1,9 @@
 # Blockchain component — ProgressRegistry
 
 PvP uses a **persistent local EVM test chain by default** during development.
-The backend talks to it through `web3.py`; the chain is not a real public
-network and does not require real funds or a Polygon RPC endpoint.
+The blockchain package is an ES module (`"type": "module"`). Hardhat's
+configuration remains CommonJS in `hardhat.config.cjs` for compatibility with
+Hardhat 2.
 
 ## Architecture
 
@@ -14,24 +15,23 @@ http://127.0.0.1:8545
         |
    Ganache local EVM
         |
-  .data/ganache/      <- persistent chain database
+  .data/ganache/        <- persistent chain database
         |
  ProgressRegistry.sol
 ```
 
 The contract is deployed once to the persistent local chain. Its address and
-the local test account metadata are stored in:
+local test account metadata are stored in:
 
 ```text
 blockchain/.data/local-chain.json
 ```
 
-Both `.data/` and the deployment metadata are git-ignored because the private
-key inside that file is **test-only**.
+`.data/` is local-only and must not be committed.
 
-## Start the local persistent chain
+## Start the persistent local chain
 
-From this directory:
+From `blockchain/`:
 
 ```bash
 cp .env.example .env
@@ -39,51 +39,55 @@ npm install
 npm run chain:start
 ```
 
-Keep that terminal running. The chain database lives at:
+Keep that terminal running. The chain database remains at:
 
 ```text
 blockchain/.data/ganache
 ```
 
-so restarting Ganache with the same database path and mnemonic preserves the
-contract and transaction history.
+Restarting Ganache with the same database path, mnemonic, and chain ID
+preserves blocks, transactions, contract state, and account nonces.
 
 ## Deploy the contract
 
-In a second terminal:
+In another terminal:
 
 ```bash
 cd blockchain
 npm run deploy:local
 ```
 
-The first deployment creates:
+The first run creates:
 
 ```text
 blockchain/.data/local-chain.json
 ```
 
-Running `npm run deploy:local` again detects the existing contract and does not
-deploy another copy, as long as the persistent chain database still contains
-that contract.
+Running it again reuses the existing contract if it is still present on the
+same persistent chain.
 
 ## Backend
 
-The backend defaults to:
+The backend uses local mode by default:
 
 ```env
 PVP_BLOCKCHAIN_MODE=local
+LOCAL_RPC_URL=http://127.0.0.1:8545
 PVP_LOCAL_CHAIN_CONFIG=../blockchain/.data/local-chain.json
 ```
 
-No Polygon key or real-network RPC is required.
+The backend reads the deployed contract address and test private key from the
+local deployment metadata automatically.
 
-Start the backend only after the local chain is running and the contract has
-been deployed.
+## Chain ID vs network ID
 
-## Important: reset the development chain
+PvP explicitly uses **Chain ID 1337** for the local chain. Network ID is a
+separate legacy/network identifier. Backend transaction signing uses the chain
+ID returned by the node.
 
-To intentionally start a fresh chain and erase all local blockchain history:
+## Reset the local chain
+
+To intentionally erase all local history:
 
 ```bash
 rm -rf .data/ganache .data/local-chain.json
@@ -93,7 +97,7 @@ Then start Ganache and deploy again.
 
 ## External network
 
-An external network remains available for later testing, but it is opt-in:
+Polygon Amoy remains available but is explicitly opt-in:
 
 ```env
 PVP_BLOCKCHAIN_MODE=external
@@ -102,4 +106,17 @@ DEPLOYER_PRIVATE_KEY=...
 CONTRACT_ADDRESS=...
 ```
 
-Do not use a real-funded private key for development.
+Do not use real-funded credentials for local development.
+
+## Local chain troubleshooting
+
+The persistent chain uses Ganache as an imported Node module (not a spawned global binary). If `npm run chain:start` reports that Ganache is missing, run:
+
+```bash
+npm install -D ganache@7.9.2
+npm run chain:check
+npm run chain:start
+```
+
+The chain data is stored under `blockchain/.data/ganache/` and persists across restarts.
+

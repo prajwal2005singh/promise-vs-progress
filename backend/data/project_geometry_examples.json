@@ -1,0 +1,37 @@
+[
+  {
+    "project_name": "North-South Tunnel Corridor",
+    "location_geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [77.5970, 13.0358],
+        [77.5900, 13.0200],
+        [77.5850, 13.0000]
+      ]
+    },
+    "location_geofence_m": 150,
+    "note": "Replace example coordinates with the authoritative surveyed/project corridor geometry before accepting official evidence."
+  },
+  {
+    "project_name": "Peripheral Ring Road (Bengaluru Business Corridor)",
+    "location_geometry": {
+      "type": "MultiLineString",
+      "coordinates": [
+        [[77.5600, 13.1000], [77.5800, 13.0900]],
+        [[77.6200, 13.0500], [77.7000, 12.9800]],
+        [[77.7600, 12.9300], [77.8500, 12.8800]]
+      ]
+    },
+    "location_geofence_m": 200,
+    "note": "Use one continuous LineString when the alignment is known; MultiLineString is appropriate when the project has several disconnected road segments."
+  },
+  {
+    "project_name": "Citywide White-Topping Program",
+    "location_geometry": {
+      "type": "MultiLineString",
+      "coordinates": []
+    },
+    "location_geofence_m": 100,
+    "note": "Populate this with the actual covered road segments; a single Bengaluru center point is not sufficient for a 450-500 km citywide programme."
+  }
+]

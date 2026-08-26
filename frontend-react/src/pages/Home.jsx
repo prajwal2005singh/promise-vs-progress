@@ -8,49 +8,142 @@ export default function Home() {
   const [projects, setProjects] = useState(null);
 
   useEffect(() => {
-    api.listProjects().then(setProjects).catch(() => setProjects([]));
+    async function loadProjects() {
+      try {
+        const baseProjects = await api.listProjects();
+
+        console.log("Projects from API:", baseProjects);
+
+        const results = await Promise.allSettled(
+          baseProjects.map((project) =>
+            api.getProjectProgress(project.id)
+          )
+        );
+
+        const projectsWithProgress = baseProjects.map(
+          (project, index) => {
+            const result = results[index];
+
+            if (result.status === "fulfilled") {
+              console.log(
+                `Progress for ${project.name}:`,
+                result.value
+              );
+
+              return {
+                ...project,
+                progress: result.value,
+              };
+            }
+
+            console.error(
+              `Progress failed for ${project.name}:`,
+              result.reason
+            );
+
+            return {
+              ...project,
+              progress: null,
+            };
+          }
+        );
+
+        setProjects(projectsWithProgress);
+      } catch (error) {
+        console.error(
+          "Failed to load projects:",
+          error
+        );
+
+        setProjects([]);
+      }
+    }
+
+    loadProjects();
   }, []);
 
   const stats = projects
     ? {
         total: projects.length,
-        totalBudget: projects.reduce((sum, p) => sum + (p.budget || 0), 0),
-        avgProgress: Math.round(
-          projects.reduce((sum, p) => sum + p.progress_percent, 0) / (projects.length || 1)
+
+        totalBudget: projects.reduce(
+          (sum, p) => sum + (p.budget || 0),
+          0
         ),
-        delivered: projects.filter((p) => p.status === "COMPLETED").length,
+
+        avgProgress: Math.round(
+          projects.reduce(
+            (sum, p) =>
+              sum +
+              (p.progress?.project_progress_percent || 0),
+            0
+          ) / (projects.length || 1)
+        ),
+
+        delivered: projects.filter(
+          (p) => p.status === "COMPLETED"
+        ).length,
       }
     : null;
 
   return (
     <div>
-      {/* Hero: the ledger's opening page */}
-      <section className="paper-grain border-b-2" style={{ borderColor: "var(--color-ink)" }}>
+      {/* Hero */}
+      <section
+        className="paper-grain border-b-2"
+        style={{ borderColor: "var(--color-ink)" }}
+      >
         <div className="max-w-6xl mx-auto px-6 py-20 sm:py-28">
-          <p className="font-mono text-xs uppercase tracking-[0.25em] mb-5" style={{ color: "var(--color-marigold-deep)" }}>
+          <p
+            className="font-mono text-xs uppercase tracking-[0.25em] mb-5"
+            style={{
+              color: "var(--color-marigold-deep)",
+            }}
+          >
             Government of Karnataka · Public Ledger, Vol. I
           </p>
-          <h1 className="font-display text-4xl sm:text-6xl leading-[1.05] max-w-3xl" style={{ color: "var(--color-ink)" }}>
+
+          <h1
+            className="font-display text-4xl sm:text-6xl leading-[1.05] max-w-3xl"
+            style={{ color: "var(--color-ink)" }}
+          >
             Every crore promised. <br />
-            <span className="italic">Every crore, tracked.</span>
+            <span className="italic">
+              Every crore, tracked.
+            </span>
           </h1>
-          <p className="mt-7 max-w-xl text-base sm:text-lg" style={{ color: "var(--color-ink-soft)" }}>
-            A public record comparing what Karnataka's budget promised for roads and
-            government schools against what citizens can actually verify on the ground —
-            photographed, timestamped, and stamped permanently onto a public blockchain.
+
+          <p
+            className="mt-7 max-w-xl text-base sm:text-lg"
+            style={{
+              color: "var(--color-ink-soft)",
+            }}
+          >
+            A public record comparing what Karnataka's budget
+            promised for roads and government schools against
+            what citizens can actually verify on the ground —
+            photographed, timestamped, and stamped permanently
+            onto a public blockchain.
           </p>
+
           <div className="mt-9 flex flex-wrap items-center gap-4">
             <Link
               to="/projects"
               className="px-6 py-3 rounded font-semibold text-white shadow-sm"
-              style={{ backgroundColor: "var(--color-ink)" }}
+              style={{
+                backgroundColor: "var(--color-ink)",
+              }}
             >
               Open the Register →
             </Link>
+
             <Link
               to="/propose"
               className="px-6 py-3 rounded font-semibold border-2"
-              style={{ borderColor: "var(--color-ink)", color: "var(--color-ink)" }}
+              style={{
+                borderColor: "var(--color-ink)",
+                color: "var(--color-ink)",
+              }}
             >
               Propose a Project
             </Link>
@@ -58,50 +151,163 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Ledger summary strip */}
-      <section className="border-b" style={{ borderColor: "var(--color-line)" }}>
+      {/* Summary */}
+      <section
+        className="border-b"
+        style={{
+          borderColor: "var(--color-line)",
+        }}
+      >
         <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-2 sm:grid-cols-4 gap-8">
-          <StatBlock label="Projects tracked" value={stats ? stats.total : "—"} />
-          <StatBlock label="Public funds in ledger" value={stats ? formatBudget(stats.totalBudget) : "—"} />
-          <StatBlock label="Average completion" value={stats ? `${stats.avgProgress}%` : "—"} />
-          <StatBlock label="Fully delivered" value={stats ? stats.delivered : "—"} />
+          <StatBlock
+            label="Projects tracked"
+            value={stats ? stats.total : "—"}
+          />
+
+          <StatBlock
+            label="Public funds in ledger"
+            value={
+              stats
+                ? formatBudget(stats.totalBudget)
+                : "—"
+            }
+          />
+
+          <StatBlock
+            label="Average completion"
+            value={
+              stats
+                ? `${stats.avgProgress}%`
+                : "—"
+            }
+          />
+
+          <StatBlock
+            label="Fully delivered"
+            value={
+              stats
+                ? stats.delivered
+                : "—"
+            }
+          />
         </div>
       </section>
 
-      {/* Recent entries */}
+      {/* Projects */}
       <section className="max-w-6xl mx-auto px-6 py-16">
         <div className="flex items-baseline justify-between mb-8">
-          <h2 className="font-display text-2xl" style={{ color: "var(--color-ink)" }}>
+          <h2
+            className="font-display text-2xl"
+            style={{
+              color: "var(--color-ink)",
+            }}
+          >
             Latest entries in the register
           </h2>
-          <Link to="/projects" className="text-sm font-medium" style={{ color: "var(--color-marigold-deep)" }}>
+
+          <Link
+            to="/projects"
+            className="text-sm font-medium"
+            style={{
+              color: "var(--color-marigold-deep)",
+            }}
+          >
             View all →
           </Link>
         </div>
 
-        {!projects && <p style={{ color: "var(--color-ink-soft)" }}>Reading the ledger…</p>}
+        {!projects && (
+          <p
+            style={{
+              color: "var(--color-ink-soft)",
+            }}
+          >
+            Reading the ledger…
+          </p>
+        )}
+
         {projects && projects.length === 0 && (
-          <p style={{ color: "var(--color-ink-soft)" }}>No projects have been entered into the register yet.</p>
+          <p
+            style={{
+              color: "var(--color-ink-soft)",
+            }}
+          >
+            No projects have been entered into the
+            register yet.
+          </p>
         )}
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {projects?.slice(0, 6).map((p) => (
-            <Link
-              key={p.id}
-              to={`/projects/${p.id}`}
-              className="block p-5 rounded-lg border bg-white hover:shadow-md transition-shadow"
-              style={{ borderColor: "var(--color-line)", backgroundColor: "var(--color-paper-raised)" }}
-            >
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <h3 className="font-display text-lg leading-snug" style={{ color: "var(--color-ink)" }}>
-                  {p.name}
-                </h3>
-                <Stamp status={p.status} size="sm" tilt={-4} />
-              </div>
-              <p className="text-sm mb-3" style={{ color: "var(--color-ink-soft)" }}>{p.location_name}</p>
-              <ProgressBar value={p.progress_percent} />
-            </Link>
-          ))}
+          {projects?.slice(0, 6).map((project) => {
+            const progress = project.progress;
+
+            const hasProgress =
+              progress &&
+              (
+                progress.status === "CALCULATED" ||
+                progress.status ===
+                  "NO_VERIFIED_OBSERVATIONS"
+              ) &&
+              typeof progress.project_progress_percent ===
+                "number";
+
+            return (
+              <Link
+                key={project.id}
+                to={`/projects/${project.id}`}
+                className="block p-5 rounded-lg border bg-white hover:shadow-md transition-shadow"
+                style={{
+                  borderColor: "var(--color-line)",
+                  backgroundColor:
+                    "var(--color-paper-raised)",
+                }}
+              >
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <h3
+                    className="font-display text-lg leading-snug"
+                    style={{
+                      color: "var(--color-ink)",
+                    }}
+                  >
+                    {project.name}
+                  </h3>
+
+                  <Stamp
+                    status={project.status}
+                    size="sm"
+                    tilt={-4}
+                  />
+                </div>
+
+                <p
+                  className="text-sm mb-3"
+                  style={{
+                    color: "var(--color-ink-soft)",
+                  }}
+                >
+                  {project.location_name}
+                </p>
+
+                {hasProgress ? (
+                  <ProgressBar
+                    value={
+                      progress.project_progress_percent
+                    }
+                  />
+                ) : (
+                  <p
+                    className="text-xs"
+                    style={{
+                      color:
+                        "var(--color-ink-soft)",
+                    }}
+                  >
+                    Progress unavailable
+                  </p>
+                )}
+              </Link>
+            );
+          })}
         </div>
       </section>
     </div>
@@ -111,25 +317,68 @@ export default function Home() {
 function StatBlock({ label, value }) {
   return (
     <div>
-      <p className="font-mono text-3xl font-semibold" style={{ color: "var(--color-ink)" }}>{value}</p>
-      <p className="text-xs uppercase tracking-wider mt-1" style={{ color: "var(--color-ink-soft)" }}>{label}</p>
+      <p
+        className="font-mono text-3xl font-semibold"
+        style={{
+          color: "var(--color-ink)",
+        }}
+      >
+        {value}
+      </p>
+
+      <p
+        className="text-xs uppercase tracking-wider mt-1"
+        style={{
+          color: "var(--color-ink-soft)",
+        }}
+      >
+        {label}
+      </p>
     </div>
   );
 }
 
 export function ProgressBar({ value }) {
+  const safeValue =
+    typeof value === "number" &&
+    Number.isFinite(value)
+      ? Math.min(
+          100,
+          Math.max(0, value)
+        )
+      : 0;
+
   return (
     <div>
-      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--color-line)" }}>
+      <div
+        className="h-1.5 rounded-full overflow-hidden"
+        style={{
+          backgroundColor:
+            "var(--color-line)",
+        }}
+      >
         <div
           className="h-full rounded-full"
           style={{
-            width: `${Math.min(100, Math.max(0, value))}%`,
-            backgroundColor: value >= 70 ? "var(--color-stamp-green)" : value >= 30 ? "var(--color-marigold)" : "var(--color-stamp-red)",
+            width: `${safeValue}%`,
+            backgroundColor:
+              safeValue >= 70
+                ? "var(--color-stamp-green)"
+                : safeValue >= 30
+                  ? "var(--color-marigold)"
+                  : "var(--color-stamp-red)",
           }}
         />
       </div>
-      <p className="text-xs font-mono mt-1" style={{ color: "var(--color-ink-soft)" }}>{value}% complete</p>
+
+      <p
+        className="text-xs font-mono mt-1"
+        style={{
+          color: "var(--color-ink-soft)",
+        }}
+      >
+        {safeValue.toFixed(1)}% complete
+      </p>
     </div>
   );
 }

@@ -1,50 +1,58 @@
 """
 blockchain_client.py — Promise vs Progress
 ===========================================
-Local-first Web3 client for the ProgressRegistry smart contract.
+Thin wrapper around web3.py that talks to the ProgressRegistry smart
+contract. Local development uses the persistent Ganache chain by default;
+external Polygon Amoy is opt-in.
 
-PvP development uses a persistent local Ganache test chain by default.
-The chain is NOT a public network. Its database lives under:
-    blockchain/.data/ganache
+This module is deliberately the *only* place in the backend that knows
+about web3/RPC details. Everything else (services, routes) calls the
+plain Python functions below and doesn't need to think about gas,
+nonces, or signing.
 
-The deployment metadata (contract address + test wallet key) is stored in:
-    blockchain/.data/local-chain.json
-
-The backend reads that file automatically when
-PVP_BLOCKCHAIN_MODE=local (the default).
-
-For a future public/testnet deployment, set PVP_BLOCKCHAIN_MODE=external and
-provide the external RPC/private-key/contract variables.
+If POLYGON_RPC_URL / DEPLOYER_PRIVATE_KEY / CONTRACT_ADDRESS aren't set
+(e.g. during local development without a deployed contract), the client
+runs in "disabled" mode: hashing still works, but anchoring calls raise
+a clear error instead of crashing on a missing connection.
 """
 
 import json
 import logging
 import os
 from pathlib import Path
+from typing import Optional
 
 from dotenv import load_dotenv
 from web3 import Web3
 
 load_dotenv()
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = BASE_DIR.parent
+PVP_BLOCKCHAIN_MODE = os.getenv("PVP_BLOCKCHAIN_MODE", "local").lower()
+
+# Persistent local chain deployment metadata produced by
+# blockchain/scripts/deploy.mjs.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LOCAL_CONFIG = PROJECT_ROOT / "blockchain" / ".data" / "local-chain.json"
+LOCAL_CONFIG_PATH = Path(os.getenv("PVP_LOCAL_CHAIN_CONFIG", str(DEFAULT_LOCAL_CONFIG)))
 
-BLOCKCHAIN_MODE = os.getenv("PVP_BLOCKCHAIN_MODE", "local").strip().lower()
-LOCAL_CHAIN_CONFIG = Path(
-    os.getenv("PVP_LOCAL_CHAIN_CONFIG", str(DEFAULT_LOCAL_CONFIG))
-)
-if not LOCAL_CHAIN_CONFIG.is_absolute():
-    LOCAL_CHAIN_CONFIG = (BASE_DIR / LOCAL_CHAIN_CONFIG).resolve()
+POLYGON_RPC_URL = os.getenv("POLYGON_RPC_URL")
+DEPLOYER_PRIVATE_KEY = os.getenv("DEPLOYER_PRIVATE_KEY")
+CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS")
+LOCAL_RPC_URL = os.getenv("LOCAL_RPC_URL", "http://127.0.0.1:8545")
 
-# External chain settings are intentionally opt-in.
-EXTERNAL_RPC_URL = os.getenv("POLYGON_RPC_URL")
-EXTERNAL_PRIVATE_KEY = os.getenv("DEPLOYER_PRIVATE_KEY")
-EXTERNAL_CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS")
+if PVP_BLOCKCHAIN_MODE == "local" and LOCAL_CONFIG_PATH.exists():
+    try:
+        local_config = json.loads(LOCAL_CONFIG_PATH.read_text(encoding="utf-8"))
+        LOCAL_RPC_URL = local_config.get("rpcUrl", LOCAL_RPC_URL)
+        DEPLOYER_PRIVATE_KEY = local_config.get("deployerPrivateKey", DEPLOYER_PRIVATE_KEY)
+        CONTRACT_ADDRESS = local_config.get("contractAddress", CONTRACT_ADDRESS)
+    except (OSError, json.JSONDecodeError) as exc:
+        log.warning("Could not read local blockchain config %s: %s", LOCAL_CONFIG_PATH, exc)
 
+# RecordType enum values -- must match the Solidity enum order exactly.
 RECORD_TYPE_EVIDENCE = 0
 RECORD_TYPE_VERIFIED_PROGRESS = 1
 RECORD_TYPE_AUDIT_UPDATE = 2
@@ -55,6 +63,9 @@ RECORD_TYPE_TO_INT = {
     "AUDIT_UPDATE": RECORD_TYPE_AUDIT_UPDATE,
 }
 
+# The ABI only needs the functions/events this backend actually calls.
+# Regenerate from blockchain/artifacts after `npx hardhat compile` if the
+# contract's public interface changes.
 CONTRACT_ABI = json.loads("""
 [
   {"inputs":[{"internalType":"uint256","name":"projectId","type":"uint256"},
@@ -91,110 +102,55 @@ CONTRACT_ABI = json.loads("""
 
 
 class BlockchainClient:
+
     def __init__(self):
-        self.enabled = False
-        self.mode = BLOCKCHAIN_MODE
-        self.w3 = None
-        self.contract = None
-        self.account = None
-        self.private_key = None
-        self.rpc_url = None
-        self.contract_address = None
-        self.chain_id = None
+        rpc_url = LOCAL_RPC_URL if PVP_BLOCKCHAIN_MODE == "local" else POLYGON_RPC_URL
+        self.rpc_url = rpc_url
+        self.enabled = bool(rpc_url and DEPLOYER_PRIVATE_KEY and CONTRACT_ADDRESS)
 
-        try:
-            self._configure()
-        except Exception as exc:
-            log.warning("Blockchain client disabled: %s", exc)
-
-    def _configure(self):
-        if self.mode == "disabled":
-            log.info("Blockchain client disabled by PVP_BLOCKCHAIN_MODE=disabled")
+        if not self.enabled:
+            if PVP_BLOCKCHAIN_MODE == "local":
+                log.warning(
+                    "Local blockchain client disabled: start Ganache and deploy ProgressRegistry, "
+                    "or set PVP_BLOCKCHAIN_MODE=external. Expected local config: %s",
+                    LOCAL_CONFIG_PATH,
+                )
+            else:
+                log.warning(
+                    "External blockchain client disabled: set POLYGON_RPC_URL, "
+                    "DEPLOYER_PRIVATE_KEY and CONTRACT_ADDRESS."
+                )
+            self.w3 = None
+            self.contract = None
+            self.account = None
             return
 
-        if self.mode == "local":
-            if not LOCAL_CHAIN_CONFIG.exists():
-                raise RuntimeError(
-                    f"Local chain config not found at {LOCAL_CHAIN_CONFIG}. "
-                    "Start the persistent local chain and deploy the contract "
-                    "with: cd blockchain && npm run chain:start, then npm run deploy:local."
-                )
-
-            config = json.loads(LOCAL_CHAIN_CONFIG.read_text(encoding="utf-8"))
-            self.rpc_url = config.get("rpcUrl", "http://127.0.0.1:8545")
-            self.private_key = config.get("deployerPrivateKey")
-            self.contract_address = config.get("contractAddress")
-            self.chain_id = int(config.get("chainId", 1337))
-
-            if not self.private_key or not self.contract_address:
-                raise RuntimeError(
-                    "local-chain.json is missing deployerPrivateKey or contractAddress."
-                )
-
-        elif self.mode == "external":
-            self.rpc_url = EXTERNAL_RPC_URL
-            self.private_key = EXTERNAL_PRIVATE_KEY
-            self.contract_address = EXTERNAL_CONTRACT_ADDRESS
-            if not (self.rpc_url and self.private_key and self.contract_address):
-                raise RuntimeError(
-                    "External mode requires POLYGON_RPC_URL, DEPLOYER_PRIVATE_KEY "
-                    "and CONTRACT_ADDRESS."
-                )
-        else:
-            raise RuntimeError(
-                f"Unknown PVP_BLOCKCHAIN_MODE={self.mode!r}. "
-                "Use local, external, or disabled."
-            )
-
-        self.w3 = Web3(Web3.HTTPProvider(self.rpc_url))
-        if not self.w3.is_connected():
-            raise RuntimeError(f"Cannot connect to blockchain RPC at {self.rpc_url}")
-
-        actual_chain_id = self.w3.eth.chain_id
-        if self.chain_id is not None and actual_chain_id != self.chain_id:
-            raise RuntimeError(
-                f"Chain ID mismatch: config={self.chain_id}, RPC={actual_chain_id}"
-            )
-        self.chain_id = actual_chain_id
-
-        checksum_address = Web3.to_checksum_address(self.contract_address)
-        if self.w3.eth.get_code(checksum_address) in (b"", b"\x00"):
-            raise RuntimeError(
-                f"No contract bytecode found at {checksum_address} on chain {self.chain_id}."
-            )
-
-        self.account = self.w3.eth.account.from_key(self.private_key)
+        self.w3 = Web3(Web3.HTTPProvider(rpc_url))
+        self.account = self.w3.eth.account.from_key(DEPLOYER_PRIVATE_KEY)
         self.contract = self.w3.eth.contract(
-            address=checksum_address,
-            abi=CONTRACT_ABI,
-        )
-        self.contract_address = checksum_address
-        self.enabled = True
-
-        log.info(
-            "Blockchain enabled: mode=%s chain_id=%s rpc=%s contract=%s account=%s",
-            self.mode,
-            self.chain_id,
-            self.rpc_url,
-            self.contract_address,
-            self.account.address,
+            address=Web3.to_checksum_address(CONTRACT_ADDRESS),
+            abi=CONTRACT_ABI
         )
 
     @staticmethod
     def hash_bytes(data: bytes) -> str:
+        """keccak256 hash of raw bytes, hex-encoded with 0x prefix."""
         digest = Web3.keccak(data).hex()
         return digest if digest.startswith("0x") else f"0x{digest}"
 
     @staticmethod
     def hash_text(text: str) -> str:
+        """keccak256 hash of a UTF-8 string (e.g. a description or URL)."""
         digest = Web3.keccak(text=text).hex()
         return digest if digest.startswith("0x") else f"0x{digest}"
 
     def _require_enabled(self):
         if not self.enabled:
             raise RuntimeError(
-                "Blockchain client is not available. Start the persistent local chain "
-                "and deploy the contract first, or set PVP_BLOCKCHAIN_MODE=disabled."
+                "Blockchain client is not configured. For local development, "
+                "start the persistent Ganache chain and run npm run deploy:local "
+                "inside blockchain/. For external mode, configure the Polygon RPC, "
+                "private key, and contract address."
             )
 
     def anchor_record(
@@ -202,66 +158,47 @@ class BlockchainClient:
         project_id: int,
         reference_id: int,
         record_type: str,
-        data_hash: str,
+        data_hash: str
     ) -> dict:
+        """
+        Send a transaction that calls addRecord() on-chain. Blocks until
+        the transaction is mined (fine for a prototype's request volume;
+        for higher throughput this would move to a background worker).
+
+        Returns a dict with tx_hash, block_number, and status so the
+        caller can persist a BlockchainRecord row.
+        """
         self._require_enabled()
 
-        if record_type not in RECORD_TYPE_TO_INT:
-            raise ValueError(f"Unknown blockchain record type: {record_type}")
-
-        data_hash_bytes = bytes.fromhex(data_hash.replace("0x", ""))
         record_type_int = RECORD_TYPE_TO_INT[record_type]
+        data_hash_bytes = bytes.fromhex(data_hash.replace("0x", ""))
 
-        nonce = self.w3.eth.get_transaction_count(
-            self.account.address,
-            "pending",
-        )
+        nonce = self.w3.eth.get_transaction_count(self.account.address)
 
         tx = self.contract.functions.addRecord(
             project_id,
             reference_id,
             record_type_int,
-            data_hash_bytes,
+            data_hash_bytes
         ).build_transaction({
             "from": self.account.address,
             "nonce": nonce,
-            "chainId": self.chain_id,
+            "chainId": self.w3.eth.chain_id,
         })
 
-        # Explicitly set gas only when the client did not estimate it.
-        if "gas" not in tx:
-            tx["gas"] = self.w3.eth.estimate_gas(tx)
+        signed_tx = self.w3.eth.account.sign_transaction(tx, DEPLOYER_PRIVATE_KEY)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
 
-        signed_tx = self.w3.eth.account.sign_transaction(
-            tx,
-            self.private_key,
-        )
-        tx_hash = self.w3.eth.send_raw_transaction(
-            signed_tx.raw_transaction
-        )
+        log.info("Anchoring record on-chain, tx sent: %s", tx_hash.hex())
 
-        log.info(
-            "Anchoring local/external blockchain record: tx=%s",
-            tx_hash.hex(),
-        )
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
 
-        receipt = self.w3.eth.wait_for_transaction_receipt(
-            tx_hash,
-            timeout=120,
-        )
-
-        status = (
-            "CONFIRMED"
-            if receipt.status == 1
-            else "FAILED"
-        )
+        status = "CONFIRMED" if receipt.status == 1 else "FAILED"
 
         return {
             "tx_hash": tx_hash.hex(),
             "block_number": receipt.blockNumber,
             "status": status,
-            "chain_id": self.chain_id,
-            "mode": self.mode,
         }
 
     def is_hash_anchored(self, data_hash: str) -> bool:
@@ -274,4 +211,5 @@ class BlockchainClient:
         return self.contract.functions.getProjectRecordIndexes(project_id).call()
 
 
+# Single shared instance -- import this from services, not the class.
 blockchain_client = BlockchainClient()

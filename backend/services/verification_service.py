@@ -23,8 +23,8 @@ import hashlib
 import json
 import logging
 import os
-from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta
+
 from dotenv import load_dotenv
 from PIL import Image
 from PIL.ExifTags import GPSTAGS, TAGS
@@ -75,12 +75,7 @@ def extract_gps_and_timestamp(image_path: str) -> dict:
 
     if "DateTimeOriginal" in exif:
         try:
-            captured_at = datetime.strptime(exif["DateTimeOriginal"],"%Y:%m:%d %H:%M:%S")
-            captured_at = captured_at.replace(
-                tzinfo=ZoneInfo("Asia/Kolkata")
-            ).astimezone(timezone.utc)
-
-            result["captured_at"] = captured_at
+            result["captured_at"] = datetime.strptime(exif["DateTimeOriginal"], "%Y:%m:%d %H:%M:%S")
         except ValueError:
             pass
 

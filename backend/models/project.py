@@ -7,7 +7,8 @@ from sqlalchemy import (
     DateTime,
     Float,
     Boolean,
-    ForeignKey
+    ForeignKey,
+    JSON
 )
 from sqlalchemy.orm import relationship
 
@@ -36,6 +37,24 @@ class Project(Base):
     latitude = Column(Float, nullable=False)
 
     longitude = Column(Float, nullable=False)
+
+    # Optional GeoJSON geometry for the full project footprint/corridor.
+    # Road/tunnel projects should use LineString or MultiLineString;
+    # city-wide/area programmes may use Polygon/MultiPolygon.
+    location_geometry = Column(JSON, nullable=True)
+
+    # Acceptance tolerance around the geometry, in metres.
+    # If geometry is missing, the legacy latitude/longitude point is used
+    # with this same tolerance and the result is marked POINT_FALLBACK.
+    location_geofence_m = Column(Float, nullable=True)
+
+    # GIS-estimated geometry metadata. These values are explicitly about
+    # provenance/confidence; estimated geometry is never treated as official.
+    location_geometry_status = Column(String, nullable=True)
+    location_geometry_source = Column(String, nullable=True)
+    location_geometry_confidence = Column(Float, nullable=True)
+    location_geometry_length_km = Column(Float, nullable=True)
+    location_geometry_metadata = Column(JSON, nullable=True)
 
     budget = Column(Integer, nullable=True)
 
@@ -83,3 +102,4 @@ class Project(Base):
         "Observation",
         back_populates="project"
     )
+    

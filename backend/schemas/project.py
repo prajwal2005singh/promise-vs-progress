@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 
 
 from pydantic import BaseModel
@@ -15,6 +15,13 @@ class ProjectBase(BaseModel):
     location_name: str
     latitude: float
     longitude: float
+    location_geometry: Optional[Any] = None
+    location_geofence_m: Optional[float] = None
+    location_geometry_status: Optional[str] = None
+    location_geometry_source: Optional[str] = None
+    location_geometry_confidence: Optional[float] = None
+    location_geometry_length_km: Optional[float] = None
+    location_geometry_metadata: Optional[Any] = None
     budget: Optional[int] = None
     status: str
     progress_percent: int = 0
@@ -36,6 +43,13 @@ class ProjectUpdate(BaseModel):
     location_name: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    location_geometry: Optional[Any] = None
+    location_geofence_m: Optional[float] = None
+    location_geometry_status: Optional[str] = None
+    location_geometry_source: Optional[str] = None
+    location_geometry_confidence: Optional[float] = None
+    location_geometry_length_km: Optional[float] = None
+    location_geometry_metadata: Optional[Any] = None
     budget: Optional[int] = None
     status: Optional[str] = None
     progress_percent: Optional[int] = None

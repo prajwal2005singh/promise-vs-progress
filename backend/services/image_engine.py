@@ -53,7 +53,7 @@ class VLMAnalysis(BaseModel):
 
 class ImageEngine:
     def __init__(self):
-        self.gemini_model = os.getenv("GEMINI_IMAGE_MODEL", "gemini-3.5-flash-lite")
+        self.gemini_model = os.getenv("GEMINI_IMAGE_MODEL", "gemini-2.5-flash-lite")
         self.google_api_key = os.getenv("GOOGLE_API_KEY")
         self.clip_model_path = os.getenv("PVP_CLIP_MODEL_PATH")
         self.clip = None

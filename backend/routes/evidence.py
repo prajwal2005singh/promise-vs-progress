@@ -120,7 +120,7 @@ def upload_evidence_photo(
             detail="This exact image has already been submitted. Upload a new photo of current progress.",
         )
 
-    received_at = datetime.now(timezone.utc)
+    received_at = datetime.now(timezone.utc).replace(tzinfo=None)
     context = context_service.validate_project_context(
         project=project,
         latitude=exif_data["latitude"],
@@ -131,13 +131,17 @@ def upload_evidence_photo(
 
     if not context_service.is_context_acceptable(context):
         saved_path.unlink(missing_ok=True)
-        if context["location_status"] != "VERIFIED":
+        if context["location_status"] not in {"VERIFIED", "PROVISIONALLY_MATCHED", "POINT_FALLBACK_VERIFIED"}:
             detail = (
-                f"Photo GPS is {context['distance_to_project_m']} m from the registered project location; "
-                f"the allowed geofence is {context['geofence_m']} m."
+                f"Photo location could not be accepted for this project: {context['location_status']}; "
+                f"distance to the project geometry/reference is {context['distance_to_project_m']} m "
+                f"with an allowed geofence of {context['geofence_m']} m. "
+                f"For long/linear projects, ask an administrator to estimate/register corridor geometry first."
             )
-        else:
+        elif context.get("time_status") not in {"VERIFIED_METADATA", "AFTER_EXPECTED_COMPLETION_WARNING"}:
             detail = f"Capture timestamp could not be verified for this project: {context['time_status']}."
+        else:
+            detail = f"Project context could not be accepted: {context.get('overall_status')}."
         raise HTTPException(status_code=422, detail=detail)
 
     ai_result = verification_service.score_construction_activity(str(saved_path))

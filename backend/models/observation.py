@@ -25,6 +25,8 @@ class Observation(Base):
     provenance_status = Column(String, nullable=False, default="UNVERIFIED_SOURCE_CAPTURE")
     context_status = Column(String, nullable=False, default="REVIEW")
     distance_to_project_m = Column(Float, nullable=True)
+    location_match_type = Column(String, nullable=True)
+    capture_age_days = Column(Float, nullable=True)
 
     broad_stage = Column(String, nullable=True)
     fine_stage = Column(String, nullable=True)

@@ -58,6 +58,8 @@ def create_evidence_from_upload(
         time_status=context.get("time_status"),
         provenance_status=context.get("provenance_status"),
         distance_to_project_m=context.get("distance_to_project_m"),
+        location_match_type=context.get("location_match_type"),
+        capture_age_days=context.get("capture_age_days"),
     )
 
     db.add(db_evidence)
@@ -76,6 +78,8 @@ def create_evidence_from_upload(
         provenance_status=context.get("provenance_status", "UNVERIFIED_SOURCE_CAPTURE"),
         context_status=context.get("overall_status", "REVIEW"),
         distance_to_project_m=context.get("distance_to_project_m"),
+        location_match_type=context.get("location_match_type"),
+        capture_age_days=context.get("capture_age_days"),
         broad_stage=image_analysis.get("broad_stage"),
         fine_stage=image_analysis.get("stage"),
         stage_completion=image_analysis.get("stage_completion"),
@@ -133,11 +137,10 @@ def get_all_evidence(db: Session):
 
 def get_approved_evidence_for_project(db: Session, project_id: int):
     """
-    Public-facing evidence feed: admin-verified progress only, for a
-    citizen browsing a project's page. Deliberately excludes PENDING
-    and REJECTED evidence -- unreviewed claims shouldn't display as if
-    they were confirmed, and rejected ones stay visible only to admins
-    (via get_all_evidence) for audit purposes.
+    Public-facing evidence feed: APPROVED evidence only. Approval can be
+    automatic when the Image Engine is sufficiently confident or manual
+    when the Image Engine sends the observation to the review queue.
+    PENDING and REJECTED evidence remain out of the public feed.
     """
 
     return (

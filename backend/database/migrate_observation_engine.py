@@ -19,6 +19,16 @@ from models import Base
 # Import all models through models/__init__.py before create_all.
 Base.metadata.create_all(bind=engine)
 
+project_columns = {
+    "location_geometry": "JSON",
+    "location_geofence_m": "FLOAT",
+    "location_geometry_status": "VARCHAR",
+    "location_geometry_source": "VARCHAR",
+    "location_geometry_confidence": "FLOAT",
+    "location_geometry_length_km": "FLOAT",
+    "location_geometry_metadata": "JSON",
+}
+
 evidence_columns = {
     "ai_broad_stage": "VARCHAR",
     "ai_stage": "VARCHAR",
@@ -31,14 +41,20 @@ evidence_columns = {
     "time_status": "VARCHAR",
     "provenance_status": "VARCHAR",
     "distance_to_project_m": "FLOAT",
+    "location_match_type": "VARCHAR",
+    "capture_age_days": "FLOAT",
 }
 
 inspector = inspect(engine)
-existing = {c["name"] for c in inspector.get_columns("evidence")}
+project_existing = {c["name"] for c in inspector.get_columns("projects")}
+evidence_existing = {c["name"] for c in inspector.get_columns("evidence")}
 
 with engine.begin() as conn:
+    for name, sql_type in project_columns.items():
+        if name not in project_existing:
+            conn.execute(text(f"ALTER TABLE projects ADD COLUMN {name} {sql_type}"))
     for name, sql_type in evidence_columns.items():
-        if name not in existing:
+        if name not in evidence_existing:
             conn.execute(text(f"ALTER TABLE evidence ADD COLUMN {name} {sql_type}"))
 
 # Observation table is created by metadata; show the current state.

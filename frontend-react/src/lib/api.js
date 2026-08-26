@@ -68,6 +68,9 @@ export const api = {
   // --- projects ---
   listProjects: () => request("/projects/", { auth: false }),
   getProject: (id) => request(`/projects/${id}`, { auth: false }),
+  getProjectProgress: (projectId) => request(`/projects/${projectId}/progress`, { auth: false }),
+  getProjectGeometry: (id) => request(`/projects/${id}/geometry`, { auth: false }),
+  estimateProjectGeometry: (id) => request(`/projects/${id}/geometry/estimate`, { method: "POST" }),
 
   // --- proposals ---
   listProposals: () => request("/proposals/"),

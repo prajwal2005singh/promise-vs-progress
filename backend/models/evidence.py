@@ -160,7 +160,15 @@ class Evidence(Base):
         "User",
         foreign_keys=[reviewed_by]
     )
+    location_match_type = Column(
+        String,
+        nullable=True
+    )
 
+    capture_age_days = Column(
+        Float,
+        nullable=True
+    )
     observation = relationship(
         "Observation",
         back_populates="evidence",

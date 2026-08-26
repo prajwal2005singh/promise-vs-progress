@@ -13,6 +13,9 @@ from routes.proposals import router as proposal_router
 from routes.evidence import router as evidence_router
 from routes.blockchain import router as blockchain_router
 from routes.observations import router as observations_router
+from routes.gis import router as gis_router
+from routes.progress import router as progress_router
+
 
 app = FastAPI(
     title="Promise VS Progress",
@@ -47,7 +50,8 @@ app.include_router(proposal_router, prefix="/api")
 app.include_router(evidence_router, prefix="/api")
 app.include_router(blockchain_router, prefix="/api")
 app.include_router(observations_router, prefix="/api")
-
+app.include_router(gis_router, prefix="/api")
+app.include_router(progress_router,prefix="/api")
 
 # --- Serve citizen-uploaded evidence photos -----------------------------
 # routes/evidence.py writes here (backend/uploads/evidence/) and returns

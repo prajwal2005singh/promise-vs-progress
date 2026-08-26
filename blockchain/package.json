@@ -1,21 +1,30 @@
 {
   "name": "promise-vs-progress-blockchain",
   "version": "1.0.0",
-  "description": "Polygon smart contract that anchors evidence/progress hashes for Promise vs Progress",
+  "description": "Persistent local EVM blockchain and optional Polygon Amoy deployment for Promise vs Progress",
   "private": true,
   "type": "module",
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "deploy:amoy": "hardhat run scripts/deploy.js --network amoy",
-    "deploy:local": "hardhat run scripts/deploy.js --network local",
-    "chain:start": "node scripts/start-local-chain.js"
+    "deploy:amoy": "DEPLOY_NETWORK=amoy hardhat run scripts/deploy.mjs --network amoy",
+    "deploy:local": "DEPLOY_NETWORK=local hardhat run scripts/deploy.mjs --network local",
+    "chain:start": "node scripts/start-local-chain.mjs",
+    "chain:check": "node -e \"import(\\\"ganache\\\").then(()=>console.log(\\\"Ganache package OK\\\")).catch(e=>{console.error(e.message); process.exit(1)})\""
   },
   "license": "MIT",
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^4.0.15",
     "@nomicfoundation/hardhat-verify": "^3.0.22",
     "dotenv": "^17.4.2",
+    "ganache": "^7.9.2",
     "hardhat": "^3.14.0"
+  },
+  "mocha": {
+    "timeout": 120000,
+    "extension": [
+      "js",
+      "cjs"
+    ]
   }
 }
