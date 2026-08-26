@@ -3,16 +3,19 @@
   "version": "1.0.0",
   "description": "Polygon smart contract that anchors evidence/progress hashes for Promise vs Progress",
   "private": true,
+  "type": "module",
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy:amoy": "hardhat run scripts/deploy.js --network amoy",
-    "deploy:local": "hardhat run scripts/deploy.js --network hardhat"
+    "deploy:local": "hardhat run scripts/deploy.js --network local",
+    "chain:start": "node scripts/start-local-chain.js"
   },
   "license": "MIT",
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "hh2",
+    "@nomicfoundation/hardhat-ethers": "^4.0.15",
+    "@nomicfoundation/hardhat-verify": "^3.0.22",
     "dotenv": "^17.4.2",
-    "hardhat": "^2.22.0"
+    "hardhat": "^3.14.0"
   }
 }

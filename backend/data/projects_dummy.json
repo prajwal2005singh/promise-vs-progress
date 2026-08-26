@@ -1,50 +1,34 @@
-[
-    {
-        "name": "North–South Tunnel Corridor",
-        "description": "Construction of a 16.7 km six-lane twin-tube underground tunnel connecting Hebbal Junction to Silk Board Junction under the B-SMILE initiative.",
-        "category": "Tunnel",
-        "department": "B-SMILE",
-        "mla_name": null,
-        "constituency": "Bengaluru Central",
-        "location_name": "Hebbal Junction to Silk Board Junction",
-        "latitude": 13.0358,
-        "longitude": 77.5970,
-        "budget": 177800000000,
-        "status": "APPROVED",
-        "progress_percent": 8,
-        "expected_completion": "2029-12-31T00:00:00",
-        "start_date": "2026-01-01T00:00:00"
-    },
-    {
-        "name": "East–West Tunnel Corridor",
-        "description": "Development of a 22 km underground tunnel connecting KR Puram to Mysore Road under the Bengaluru Tunnel Corridor Program.",
-        "category": "Tunnel",
-        "department": "B-SMILE",
-        "mla_name": null,
-        "constituency": "Bengaluru East",
-        "location_name": "KR Puram to Mysore Road",
-        "latitude": 12.9965,
-        "longitude": 77.6950,
-        "budget": 200000000000,
-        "status": "PLANNING",
-        "progress_percent": 0,
-        "expected_completion": "2030-12-31T00:00:00",
-        "start_date": null
-    },
-    {
-        "name": "Citywide White Topping Program",
-        "description": "Concrete resurfacing of major Bengaluru roads to improve durability and reduce maintenance.",
-        "category": "Road",
-        "department": "BBMP",
-        "mla_name": null,
-        "constituency": "Bengaluru",
-        "location_name": "Multiple Roads, Bengaluru",
-        "latitude": 12.9716,
-        "longitude": 77.5946,
-        "budget": 35000000000,
-        "status": "ONGOING",
-        "progress_percent": 42,
-        "expected_completion": "2028-12-31T00:00:00",
-        "start_date": "2025-10-22T00:00:00"
-    }
+ [
+     {
+    "name": "Old Madras Road–Electronic City Elevated Corridor",
+    "description": "Construction of a 5.20 km elevated highway connecting Old Madras Road near KR Puram to Electronic City via Indiranagar, Airport Road and Hosur Road using ultra-high-performance concrete.",
+    "category": "Elevated Corridor",
+    "department": "B-SMILE",
+    "mla_name": null,
+    "constituency": "Bengaluru East",
+    "location_name": "Old Madras Road to Electronic City",
+    "latitude": 13.0035,
+    "longitude": 77.6850,
+    "budget": 8520000000,
+    "status": "TENDER_ISSUED",
+    "progress_percent": 0,
+    "expected_completion": "2029-05-27T00:00:00",
+    "start_date": "2026-05-27T00:00:00"
+  },
+  {
+    "name": "Phase-1: 11 Elevated Corridors",
+    "description": "Umbrella B-SMILE program comprising 11 elevated corridors totaling approximately 75.6 km across major Bengaluru arterial roads, including Tumkur Road, Kanakapura Road and Hosur Road.",
+    "category": "Elevated Corridor",
+    "department": "B-SMILE",
+    "mla_name": null,
+    "constituency": "Bengaluru",
+    "location_name": "Multiple arterial corridors across Bengaluru",
+    "latitude": 12.9716,
+    "longitude": 77.5946,
+    "budget": 132620000000,
+    "status": "APPROVED",
+    "progress_percent": 0,
+    "expected_completion": "2031-04-16T00:00:00",
+    "start_date": "2026-04-16T00:00:00"
+  }
 ]

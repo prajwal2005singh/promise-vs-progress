@@ -92,7 +92,7 @@ function ProposalsTab() {
 
   return (
     <div>
-      <Section title={`Awaiting review (${pending.length})`}>
+      <Section title={`Needs human review (${pending.length})`}>
         {pending.length === 0 && <Empty>Nothing pending.</Empty>}
         {pending.map((p) => (
           <Card key={p.id}>
@@ -168,7 +168,7 @@ useEffect(() => {
 
   return (
     <div>
-      <Section title={`Awaiting review (${pending.length})`}>
+      <Section title={`Needs human review (${pending.length})`}>
         {pending.length === 0 && <Empty>Nothing pending.</Empty>}
         {pending.map((e) => (
           <Card key={e.id}>
@@ -181,6 +181,22 @@ useEffect(() => {
                 <a href={e.image_url} target="_blank" rel="noreferrer" className="text-xs font-medium underline" style={{ color: "var(--color-marigold-deep)" }}>
                   View photo
                 </a>
+              )}
+              {(e.ai_stage || e.confirming_citizens != null || e.ai_reason) && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {e.ai_stage && (
+                    <EvidenceBadge>Stage: {e.ai_stage}{e.ai_stage_completion ? ` · ${e.ai_stage_completion.toLowerCase()}` : ""}</EvidenceBadge>
+                  )}
+                  {e.confirming_citizens != null && (
+                    <EvidenceBadge>{e.confirming_citizens} confirming {e.confirming_citizens === 1 ? "citizen" : "citizens"}</EvidenceBadge>
+                  )}
+                  {e.activity_score != null && (
+                    <EvidenceBadge>Activity score {e.activity_score.toFixed(2)}</EvidenceBadge>
+                  )}
+                </div>
+              )}
+              {e.ai_reason && (
+                <p className="text-xs italic mt-1.5" style={{ color: "var(--color-ink-soft)" }}>"{e.ai_reason}"</p>
               )}
             </div>
             <div className="flex gap-2 shrink-0">
@@ -225,6 +241,17 @@ function Card({ children }) {
 
 function Empty({ children }) {
   return <p className="text-sm" style={{ color: "var(--color-ink-soft)" }}>{children}</p>;
+}
+
+function EvidenceBadge({ children }) {
+  return (
+    <span
+      className="text-[10px] font-mono uppercase tracking-wider px-2 py-1 rounded"
+      style={{ color: "var(--color-marigold-deep)", backgroundColor: "var(--color-paper)", border: "1px solid var(--color-line)" }}
+    >
+      {children}
+    </span>
+  );
 }
 
 function ActionButton({ variant, children, ...props }) {

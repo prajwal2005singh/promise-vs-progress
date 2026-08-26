@@ -3,3 +3,10 @@ venv/
 __pycache__/
 *.pyc
 scripts
+projects.db
+node_modules
+package-lock.json
+blockchain/.data
+blockchain/cache
+blockchain/artifacts/
+backend/uploads/

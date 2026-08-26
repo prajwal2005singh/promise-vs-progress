@@ -21,10 +21,12 @@ class ApiError extends Error {
   }
 }
 
-async function request(path, { method = "GET", body, form, auth = true } = {}) {
+async function request(path, { method = "GET", body, form, file, auth = true } = {}) {
   const headers = {};
   if (body) headers["Content-Type"] = "application/json";
   if (form) headers["Content-Type"] = "application/x-www-form-urlencoded";
+  // `file` is a FormData -- deliberately no Content-Type set here, so the
+  // browser fills in the multipart boundary itself.
 
   if (auth) {
     const token = getToken();
@@ -34,7 +36,7 @@ async function request(path, { method = "GET", body, form, auth = true } = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
     method,
     headers,
-    body: form ? form : body ? JSON.stringify(body) : undefined,
+    body: file ? file : form ? form : body ? JSON.stringify(body) : undefined,
   });
 
   // 204/empty responses (rare here, but don't choke on them)
@@ -77,6 +79,15 @@ export const api = {
   listEvidence: () => request("/evidence/"),
   getProjectEvidence: (projectId) => request(`/evidence/project/${projectId}`, { auth: false }),
   uploadEvidence: (payload) => request("/evidence/", { method: "POST", body: payload }),
+  // Primary citizen-facing path: an actual photo, EXIF-checked and
+  // AI-scored server-side (see routes/evidence.py POST /evidence/upload).
+  uploadEvidencePhoto: (projectId, description, photoFile) => {
+    const form = new FormData();
+    form.append("project_id", projectId);
+    form.append("description", description);
+    form.append("photo", photoFile);
+    return request("/evidence/upload", { method: "POST", file: form });
+  },
   approveEvidence: (id) => request(`/evidence/approve/${id}`, { method: "PUT" }),
   rejectEvidence: (id, reason) => request(`/evidence/reject/${id}`, { method: "PUT", body: { reason } }),
 

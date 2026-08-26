@@ -23,17 +23,26 @@ def anchor_evidence(
     and "this was independently confirmed" as separate, timestamped facts.
     """
 
-    # Hash the parts of the evidence that must not be alterable later:
-    # what was claimed, where, and when it was captured. Deliberately
-    # excludes mutable fields like `status` -- this hash should represent
-    # the original submission, not its current review state.
+    # Hash the parts of the evidence that should be auditable later:
+    # claim, image fingerprint, location/time metadata, context checks, and
+    # Image Engine interpretation. Mutable review fields such as status and
+    # reviewer comments remain outside this hash.
     fingerprint = "|".join([
         str(evidence.project_id),
         evidence.description,
         evidence.image_url or "",
+        evidence.image_fingerprint or "",
         str(evidence.latitude),
         str(evidence.longitude),
         evidence.captured_at.isoformat(),
+        evidence.location_status or "",
+        evidence.time_status or "",
+        evidence.provenance_status or "",
+        evidence.ai_broad_stage or "",
+        evidence.ai_stage or "",
+        evidence.ai_stage_completion or "",
+        str(evidence.ai_confidence) if evidence.ai_confidence is not None else "",
+        evidence.ai_evidence or "",
     ])
 
     data_hash = blockchain_client.hash_text(fingerprint)

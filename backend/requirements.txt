@@ -15,9 +15,11 @@ email-validator       # required by pydantic EmailStr used in auth schemas
 # Validation
 pydantic
 
-# AI processor (ai_processor.py)
+# AI processor (ai_processor.py) + citizen evidence verification
+# (services/verification_service.py) -- both reuse GOOGLE_API_KEY
 google-genai
 python-dotenv
+pillow                 # EXIF GPS/timestamp extraction + image fingerprinting for evidence photos
 
 # Scraper (scraper.py)
 requests
@@ -25,3 +27,8 @@ beautifulsoup4
 
 # Blockchain integration (blockchain_client.py)
 web3
+
+# Optional local CLIP routing for the Image Engine
+torch
+open_clip_torch
+joblib

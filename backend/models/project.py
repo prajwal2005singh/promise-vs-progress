@@ -78,3 +78,8 @@ class Project(Base):
         "Evidence",
         back_populates="project"
     )
+
+    observations = relationship(
+        "Observation",
+        back_populates="project"
+    )

@@ -127,9 +127,17 @@ export default function ProjectDetail() {
               )}
               <div className="p-4">
                 <p className="text-sm mb-2" style={{ color: "var(--color-ink)" }}>{e.description}</p>
-                <p className="text-xs font-mono" style={{ color: "var(--color-ink-soft)" }}>
+                <p className="text-xs font-mono mb-2" style={{ color: "var(--color-ink-soft)" }}>
                   Captured {formatDate(e.captured_at)}
                 </p>
+                {(e.ai_stage || e.confirming_citizens != null) && (
+                  <div className="flex flex-wrap gap-2">
+                    {e.ai_stage && <Badge>Stage: {e.ai_stage}{e.ai_stage_completion ? ` · ${e.ai_stage_completion.toLowerCase()}` : ""}</Badge>}
+                    {e.confirming_citizens != null && e.confirming_citizens > 1 && (
+                      <Badge>Confirmed by {e.confirming_citizens} citizens</Badge>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -186,5 +194,16 @@ function Row({ label, value }) {
       <dt style={{ color: "var(--color-ink-soft)" }}>{label}</dt>
       <dd className="font-medium text-right" style={{ color: "var(--color-ink)" }}>{value}</dd>
     </div>
+  );
+}
+
+function Badge({ children }) {
+  return (
+    <span
+      className="text-[10px] font-mono uppercase tracking-wider px-2 py-1 rounded"
+      style={{ color: "var(--color-marigold-deep)", backgroundColor: "var(--color-paper)", border: "1px solid var(--color-line)" }}
+    >
+      {children}
+    </span>
   );
 }

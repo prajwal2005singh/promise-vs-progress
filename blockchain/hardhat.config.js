@@ -1,10 +1,9 @@
-require("dotenv").config();
-require("@nomicfoundation/hardhat-toolbox");
+import "dotenv/config";
+import hardhatEthers from "@nomicfoundation/hardhat-ethers";
+import hardhatVerify from "@nomicfoundation/hardhat-verify";
 
-const { AMOY_RPC_URL, DEPLOYER_PRIVATE_KEY, POLYGONSCAN_API_KEY } = process.env;
-
-/** @type import('hardhat/config').HardhatUserConfig */
-module.exports = {
+const config = {
+  plugins: [hardhatEthers, hardhatVerify],
   solidity: {
     version: "0.8.20",
     settings: {
@@ -14,15 +13,36 @@ module.exports = {
       },
     },
   },
+
   networks: {
-    hardhat: {},
+    hardhat: {
+      type: "edr-simulated",
+    },
+
+    local: {
+      type: "http",
+      url: process.env.LOCAL_RPC_URL || "http://127.0.0.1:7545",
+      chainId: 1337,
+      accounts: process.env.LOCAL_MNEMONIC
+        ? { mnemonic: process.env.LOCAL_MNEMONIC }
+        : [],
+    },
+
     amoy: {
-      url: AMOY_RPC_URL || "https://rpc-amoy.polygon.technology",
-      accounts: DEPLOYER_PRIVATE_KEY ? [DEPLOYER_PRIVATE_KEY] : [],
+      type: "http",
+      url:
+        process.env.AMOY_RPC_URL ||
+        "https://rpc-amoy.polygon.technology",
       chainId: 80002,
+      accounts: process.env.DEPLOYER_PRIVATE_KEY
+        ? [process.env.DEPLOYER_PRIVATE_KEY]
+        : [],
     },
   },
+
   etherscan: {
-    apiKey: POLYGONSCAN_API_KEY || "",
+    apiKey: process.env.POLYGONSCAN_API_KEY || "",
   },
 };
+
+export default config;
